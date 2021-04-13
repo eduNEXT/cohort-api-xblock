@@ -1,0 +1,9 @@
+/* CSS for CohortAPIXblock */
+
+.cohort_api_xblock_block .count {
+    font-weight: bold;
+}
+
+.cohort_api_xblock_block p {
+    cursor: pointer;
+}
