@@ -1,5 +1,16 @@
 README for Cohort API for learners
 
+Cohort API used to get information about the student's cohort. To use it,
+just include this xblock from Studio into your course and after loading it will emit an
+event with the information about the cohort.
+
+To get it, you will have to include in your component the following script:
+
+document.addEventListener("cohort_obtained", (event) => {
+    userCohort = event.detail.cohort_name
+});
+
+For now, we are only sending the name of the cohort.
 
 Testing with Docker
 ====================
