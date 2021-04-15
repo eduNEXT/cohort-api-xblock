@@ -71,6 +71,9 @@ class CohortAPIXblock(XBlock):
         course_key = CourseKey.from_string(course_id_str)
         cohort = get_cohort(user, course_key, assign=False, use_cached=True)
 
+        if not cohort:
+            return {}
+
         return {"cohort_name": cohort.name}
 
     @staticmethod
