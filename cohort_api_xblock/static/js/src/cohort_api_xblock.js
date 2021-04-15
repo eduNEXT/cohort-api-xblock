@@ -1,28 +1,36 @@
-/* Javascript for CohortAPIXblock. */
+/* Javascript for CohortAPIXblock.
+
+   After successfully calling the JSONHandler `get_user_cohort` an event is emitted with
+   the cohort information.
+
+   For now, we provide:
+    - cohort_name
+
+   This can be accessed by listening to the event `cohort_obtained`.
+
+*/
 function CohortAPIXblock(runtime, element) {
-
-    function updateCount(result) {
-        $('.count', element).text(result.count);
-    }
-
-    var handlerUrl = runtime.handlerUrl(element, 'increment_count');
-
-    $('p', element).click(function(eventObject) {
-        $.ajax({
-            type: "POST",
-            url: handlerUrl,
-            data: JSON.stringify({"hello": "world"}),
-            success: updateCount
-        });
+  function successHandler(result) {
+    var detail = result.cohort_name
+      ? {
+          cohort_name: result.cohort_name,
+        }
+      : {};
+    var event = new CustomEvent("cohort_obtained", {
+      detail: detail,
     });
+    document.dispatchEvent(event);
+  }
 
-    $(function ($) {
-        /*
-        Use `gettext` provided by django-statici18n for static translations
+  var handlerUrl = runtime.handlerUrl(element, "get_user_cohort");
 
-        var gettext = CohortAPIXblocki18n.gettext;
-        */
-
-        /* Here's where you'd do things on page load. */
+  /* Here's where you'd do things on page load. */
+  $(function ($) {
+    $.ajax({
+      type: "POST",
+      url: handlerUrl,
+      data: JSON.stringify({}),
+      success: successHandler,
     });
+  });
 }
