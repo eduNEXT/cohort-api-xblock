@@ -1,15 +1,18 @@
 <div class="cohort_api_xblock_block">
+  <div class="alert">
+    if you do not know what this component is for, please do not remove it. Contact the course administrator.
+  </div>
   <p>
     Cohort API used to get information about the student's cohort. To use it,
-    just include this xblock in the course and after loading it will emit an
-    event with the information about the cohort.
-
-    To get it, you will have to include in your component the following script:
-
-    document.addEventListener("cohort_obtained", (event) => {
-        userCohort = event.detail.cohort_name
-    });
-
-    For now, we are only sending the name of the cohort.
+    just include this xblock in the course.
+    Instructions:
+    <ol>
+        <li>1. Include this component in your course. You can include it in any course unit.</li>
+        <li>2. Save the Block ID.</li>
+        <li>3. To use in conjunction with JSinput for video-sessions please go to Studio edit the
+            JSinput and add in BlockID the ID of the block you just created.
+        </li>
+    </ol>
+    If you're not using this component in conjunction with JSinput for video sessions, contact the course administrator.
   </p>
 </div>

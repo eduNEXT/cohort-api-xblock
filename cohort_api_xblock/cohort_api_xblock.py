@@ -1,4 +1,7 @@
-"""TO-DO: Write a description of what this XBlock is."""
+"""
+Cohort API used to get information about the student's cohort. To use it, just include this xblock at some place in the course.
+For now, this returns the name of the student's cohort.
+"""
 
 import pkg_resources
 
@@ -27,12 +30,16 @@ class CohortAPIXblock(XBlock):
         data = pkg_resources.resource_string(__name__, path)
         return data.decode("utf8")
 
-    # TO-DO: change this view to display your data your own way.
     def student_view(self, context=None):
         """
         The primary view of the CohortAPIXblock, shown to students
         when viewing courses.
         """
+        in_studio_runtime = hasattr(self.xmodule_runtime, 'is_author_mode')
+
+        if in_studio_runtime:
+            return self.studio_view(context)
+
         html = self.resource_string("static/html/cohort_api_xblock.html")
         frag = Fragment(html.format(self=self))
         frag.add_css(self.resource_string("static/css/cohort_api_xblock.css"))
@@ -61,7 +68,7 @@ class CohortAPIXblock(XBlock):
         """
         is_studio = hasattr(self.xmodule_runtime, "is_author_mode")  # pylint: disable=no-member
 
-        if is_studio:
+        if is_studio or self.xmodule_runtime.__class__.__name__ == "StudioEditModuleRuntime":
             return {}
 
         current_anonymous_student_id = self.runtime.anonymous_student_id
