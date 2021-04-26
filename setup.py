@@ -33,7 +33,7 @@ setup(
     ],
     entry_points={
         'xblock.v1': [
-            'CohortAPIXblock = cohort_api_xblock:CohortAPIXblock',
+            'cohort-api = cohort_api_xblock:CohortAPIXblock',
         ]
     },
     package_data=package_data("cohort_api_xblock", ["static", "public"]),

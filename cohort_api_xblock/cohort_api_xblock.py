@@ -1,26 +1,28 @@
-"""TO-DO: Write a description of what this XBlock is."""
+"""
+Cohort API used to get information about the student's cohort. To use it, just include this xblock at some place in the course.
+For now, this returns the name of the student's cohort.
+"""
 
 import pkg_resources
 
 from django.utils import translation
 from xblock.core import XBlock
-from xblock.fields import Scope, Integer
+from xblock.fields import Scope, String
 from xblock.fragment import Fragment
 from xblockutils.resources import ResourceLoader
 
+from openedx.core.djangoapps.course_groups.cohorts import get_cohort
+from opaque_keys.edx.keys import CourseKey
 
 class CohortAPIXblock(XBlock):
     """
-    TO-DO: document what your XBlock does.
+    Xblock used to get data about students cohorts.
     """
 
-    # Fields are defined on the class.  You can access them in your code as
-    # self.<fieldname>.
-
-    # TO-DO: delete count, and define your own fields.
-    count = Integer(
-        default=0, scope=Scope.user_state,
-        help="A simple counter, to show something happening",
+    cohort_name = String(
+        default="Default cohort name",
+        scope=Scope.user_state,
+        help="Cohort name where the user belongs.",
     )
 
     def resource_string(self, path):
@@ -28,40 +30,59 @@ class CohortAPIXblock(XBlock):
         data = pkg_resources.resource_string(__name__, path)
         return data.decode("utf8")
 
-    # TO-DO: change this view to display your data your own way.
     def student_view(self, context=None):
         """
         The primary view of the CohortAPIXblock, shown to students
         when viewing courses.
         """
+        in_studio_runtime = hasattr(self.xmodule_runtime, 'is_author_mode')
+
+        if in_studio_runtime:
+            return self.studio_view(context)
+
         html = self.resource_string("static/html/cohort_api_xblock.html")
         frag = Fragment(html.format(self=self))
         frag.add_css(self.resource_string("static/css/cohort_api_xblock.css"))
-
-        # Add i18n js
-        statici18n_js_url = self._get_statici18n_js_url()
-        if statici18n_js_url:
-            frag.add_javascript_url(self.runtime.local_resource_url(self, statici18n_js_url))
-
         frag.add_javascript(self.resource_string("static/js/src/cohort_api_xblock.js"))
         frag.initialize_js('CohortAPIXblock')
         return frag
 
-    # TO-DO: change this handler to perform your own actions.  You may need more
-    # than one handler, or you may not need any handlers at all.
+    def studio_view(self, context=None):
+        """
+        Returns author view fragment on Studio.
+        Should display an example on how to use this xblock.
+        """
+        # pylint: disable=unused-argument, no-self-use
+        html = self.resource_string("static/html/cohort_api_xblock_author.html")
+        frag = Fragment(html.format(self=self))
+        frag.add_css(self.resource_string("static/css/cohort_api_xblock.css"))
+        frag.add_javascript(self.resource_string("static/js/src/cohort_api_xblock.js"))
+        frag.initialize_js('CohortAPIXblock')
+        return frag
+
     @XBlock.json_handler
-    def increment_count(self, data, suffix=''):
+    def get_user_cohort(self, data, suffix=''):
         """
-        An example handler, which increments the data.
+        Handler used to retrieve information about the students cohort, it uses the course that
+        includes this component.
         """
-        # Just to show data coming in...
-        assert data['hello'] == 'world'
+        is_studio = hasattr(self.xmodule_runtime, "is_author_mode")  # pylint: disable=no-member
 
-        self.count += 1
-        return {"count": self.count}
+        if is_studio or self.xmodule_runtime.__class__.__name__ == "StudioEditModuleRuntime":
+            return {}
 
-    # TO-DO: change this to create the scenarios you'd like to see in the
-    # workbench while developing your XBlock.
+        current_anonymous_student_id = self.runtime.anonymous_student_id
+        user = self.runtime.get_real_user(current_anonymous_student_id)
+        course_id_str = str(self.runtime.course_id)
+
+        course_key = CourseKey.from_string(course_id_str)
+        cohort = get_cohort(user, course_key, assign=False, use_cached=True)
+
+        if not cohort:
+            return {}
+
+        return {"cohort_name": cohort.name}
+
     @staticmethod
     def workbench_scenarios():
         """A canned scenario for display in the workbench."""
@@ -77,28 +98,3 @@ class CohortAPIXblock(XBlock):
                 </vertical_demo>
              """),
         ]
-
-    @staticmethod
-    def _get_statici18n_js_url():
-        """
-        Returns the Javascript translation file for the currently selected language, if any.
-        Defaults to English if available.
-        """
-        locale_code = translation.get_language()
-        if locale_code is None:
-            return None
-        text_js = 'public/js/translations/{locale_code}/text.js'
-        lang_code = locale_code.split('-')[0]
-        for code in (locale_code, lang_code, 'en'):
-            loader = ResourceLoader(__name__)
-            if pkg_resources.resource_exists(
-                    loader.module_name, text_js.format(locale_code=code)):
-                return text_js.format(locale_code=code)
-        return None
-
-    @staticmethod
-    def get_dummy():
-        """
-        Dummy method to generate initial i18n
-        """
-        return translation.gettext_noop('Dummy')

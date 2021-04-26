@@ -1,5 +1,47 @@
 README for Cohort API for learners
 
+Cohort API used to get information about the student's cohort.
+
+Intructions on how to use:
+
+1. Include this component in your course. You can include it in any course unit.
+2. Save the Block ID.
+3. Using it, you can reconstruct the handler URL used to get cohort information. You can follow this pattern:
+   currentDomain/courses/courseID/xblock/xblockID/handler/get_user_cohort
+4. Make a POST request to the handler as follows (using javascript):
+
+.. code-block:: javascript
+
+    function getUsersCohort(){
+        var headers = {
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        "x-csrftoken": getCSRFToken(),
+
+        }
+
+        return fetch(
+        `domain/courses/${courseIdSafe}/xblock/${xblockIDSafe}/handler/get_user_cohort`,
+        {
+            method: "POST",
+            credentials: 'include',
+            body: JSON.stringify({}),
+            headers: headers
+        },
+        )
+        .then(function (response) {
+            if (!response.ok) throw Error(response.statusText);
+            return response.json();
+        })
+            .then(function (response) {
+            return response;
+        })
+            .catch(function (error) {
+            console.warn(error);
+        });
+    }
+
+
+Then you'll get the cohort information. For now, we are only sending the name of the cohort.
 
 Testing with Docker
 ====================
